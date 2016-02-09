@@ -1,4 +1,4 @@
-function [scores, maxlabel] = classification_demo(im, use_gpu)
+function [scores, maxlabel] = classification_demo(im, settings, use_gpu)
 % [scores, maxlabel] = classification_demo(im, use_gpu)
 %
 % Image classification demo using BVLC CaffeNet.
@@ -55,14 +55,15 @@ function [scores, maxlabel] = classification_demo(im, use_gpu)
 % If you have multiple images, cat them with cat(4, ...)
 
 % Add caffe/matlab to you Matlab search PATH to use matcaffe
-if exist('../+caffe', 'dir')
-  addpath('..');
-else
-  error('Please run this demo from caffe/matlab/demo');
-end
+% if exist('/home/ciesiam1/Workspace/boxnet/caffe/matlab/+caffe', 'dir')
+%   addpath('..');
+%   addpath ('/home/ciesiam1/Workspace/boxnet/caffe/matlab/')
+% else
+%   error('Please run this demo from caffe/matlab/demo');
+% end
 
 % Set caffe mode
-if exist('use_gpu', 'var') && use_gpu
+if (use_gpu)%exist('use_gpu', 'var') && use_gpu
   caffe.set_mode_gpu();
   gpu_id = 0;  % we will use the first gpu in this demo
   caffe.set_device(gpu_id);
@@ -72,9 +73,9 @@ end
 
 % Initialize the network using BVLC CaffeNet for image classification
 % Weights (parameter) file needs to be downloaded from Model Zoo.
-model_dir = '../../models/bvlc_reference_caffenet/';
-net_model = [model_dir 'deploy.prototxt'];
-net_weights = [model_dir 'bvlc_reference_caffenet.caffemodel'];
+model_dir = settings.modelDirectory;
+net_model = [model_dir settings.netModelPrototxt];
+net_weights = [model_dir settings.netWeightsPrototxt];
 phase = 'test'; % run with phase test (so that dropout isn't applied)
 if ~exist(net_weights, 'file')
   error('Please download CaffeNet from Model Zoo before you run this demo');
@@ -91,18 +92,18 @@ end
 
 % prepare oversampled input
 % input_data is Height x Width x Channel x Num
-tic;
-input_data = {prepare_image(im)};
-toc;
+%tic;
+input_data = {prepare_image(im, settings)};
+%toc;
 
 % do forward pass to get scores
 % scores are now Channels x Num, where Channels == 1000
-tic;
+%tic;
 % The net forward function. It takes in a cell array of N-D arrays
 % (where N == 4 here) containing data of input blob(s) and outputs a cell
 % array containing data from output blob(s)
 scores = net.forward(input_data);
-toc;
+%toc;
 
 scores = scores{1};
 scores = mean(scores, 2);  % take average scores over 10 crops
@@ -113,14 +114,14 @@ scores = mean(scores, 2);  % take average scores over 10 crops
 caffe.reset_all();
 
 % ------------------------------------------------------------------------
-function crops_data = prepare_image(im)
+function crops_data = prepare_image(im, settings)
 % ------------------------------------------------------------------------
 % caffe/matlab/+caffe/imagenet/ilsvrc_2012_mean.mat contains mean_data that
 % is already in W x H x C with BGR channels
-d = load('../+caffe/imagenet/ilsvrc_2012_mean.mat');
+d = load(settings.meanImageData);
 mean_data = d.mean_data;
 IMAGE_DIM = 256;
-CROPPED_DIM = 227;
+CROPPED_DIM = settings.imageSize;
 
 % Convert an image returned by Matlab's imread to im_data in caffe's data
 % format: W x H x C with BGR channels

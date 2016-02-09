@@ -458,8 +458,8 @@ static void get_init_key(MEX_ARGS) {
 static void reset(MEX_ARGS) {
   mxCHECK(nrhs == 0, "Usage: caffe_('reset')");
   // Clear solvers and stand-alone nets
-  mexPrintf("Cleared %d solvers and %d stand-alone nets\n",
-      solvers_.size(), nets_.size());
+  //mexPrintf("Cleared %d solvers and %d stand-alone nets\n", /////////agata commented out!!
+  //    solvers_.size(), nets_.size());
   solvers_.clear();
   nets_.clear();
   // Generate new init_key, so that handles created before becomes invalid
